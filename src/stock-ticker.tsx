@@ -18,12 +18,12 @@ import { BlockAttributes } from "widget-sdk";
  * React Component
  */
 export interface StockTickerProps extends BlockAttributes {
-  message: string;
+  symbol: string;
 }
 
-export const StockTicker = ({ message, contentLanguage }: StockTickerProps): ReactElement => {
+export const StockTicker = ({ symbol, contentLanguage }: StockTickerProps): ReactElement => {
   const [closingPrices, setClosingPrices] = useState<number[]>([]);
-  const apiKey = "peVSYdi2zmCBJYWXc0pe0d_B0FP6dXO7"; // Replace with your actual API key
+  const apiKey = "peVSYdi2zmCBJYWXc0pe0d_B0FP6dXO7";
 
   useEffect(() => {
     const fetchClosingPrices = async () => {
@@ -34,7 +34,7 @@ export const StockTicker = ({ message, contentLanguage }: StockTickerProps): Rea
       const endDate = today.toISOString().split("T")[0]; // YYYY-MM-DD
       const startDate = twoWeeksAgo.toISOString().split("T")[0];
 
-      const apiUrl = `https://api.polygon.io/v2/aggs/ticker/AAPL/range/1/day/${startDate}/${endDate}?adjusted=true&sort=asc&apiKey=${apiKey}`;
+      const apiUrl = `https://api.polygon.io/v2/aggs/ticker/${symbol}/range/1/day/${startDate}/${endDate}?adjusted=true&sort=asc&apiKey=${apiKey}`;
 
       try {
         const response = await fetch(apiUrl);
@@ -47,7 +47,7 @@ export const StockTicker = ({ message, contentLanguage }: StockTickerProps): Rea
           console.error("No results found in Polygon.io response.", data);
         }
       } catch (error) {
-        console.error("Error fetching AAPL closing prices:", error);
+        console.error("Error fetching closing prices:", error);
       }
     };
 
@@ -62,7 +62,7 @@ export const StockTicker = ({ message, contentLanguage }: StockTickerProps): Rea
     const priceRange = maxPrice - minPrice;
 
     const width = 300; // Adjust as needed
-    const height = 100; // Adjust as needed
+    const height = 75; // Adjust as needed
     const stepX = width / (prices.length - 1);
 
     let path = `M 0 ${height - ((prices[0] - minPrice) / priceRange) * height}`;
@@ -78,7 +78,7 @@ export const StockTicker = ({ message, contentLanguage }: StockTickerProps): Rea
 
   return (
     <div>
-      <h3>AAPL Closing Prices (Last 2 Weeks)</h3>
+      <h3>{symbol}</h3>
       {closingPrices.length > 0 ? (
         <div>
           <svg width="300" height="100">

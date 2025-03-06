@@ -25,7 +25,7 @@ describe("Widget test", () => {
 
   it("should render the widget", async () => {
     const widget = document.createElement("stock-ticker");
-    widget.setAttribute("message", "World");
+    widget.setAttribute("symbol", "AAPL");
     await import("./index");
     document.body.appendChild(widget);
 
