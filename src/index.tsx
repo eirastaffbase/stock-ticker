@@ -24,7 +24,7 @@ import pkg from '../package.json'
  * Define which attributes are handled by the widget. This should be also reflected in configuration schema
  */
 const widgetAttributes: string[] = [
-  'message',
+  'symbol',
 ];
 
 /**
@@ -33,7 +33,7 @@ const widgetAttributes: string[] = [
  */
 const factory: BlockFactory = (BaseBlockClass, _widgetApi) => {
   /**
-   *  <stock-ticker message="world!"></stock-ticker>
+   *  <stock-ticker symbol="world!"></stock-ticker>
    */
   return class StockTickerBlock extends BaseBlockClass implements BaseBlock {
     private _root: ReactDOM.Root | null = null;

@@ -5,7 +5,7 @@ import {StockTicker} from "./stock-ticker";
 
 describe("StockTicker", () => {
     it("should render the component", () => {
-        render(<StockTicker contentLanguage="en_US" message="World"/>);
+        render(<StockTicker contentLanguage="en_US" symbol="World"/>);
 
         expect(screen.getByText(/Hello World/)).toBeInTheDocument();
     })
