@@ -136,13 +136,13 @@ export const StockTicker = ({ symbol, weeks, logo }: StockTickerProps): ReactEle
     };
 
     fetchData();
-  }, [symbol, effectiveWeeks, logo]); // Note: watch `effectiveWeeks` instead of `weeks`
+  }, [symbol, effectiveWeeks, logo]); 
 
   const generateSvgPath = (prices: number[]): string => {
     if (!prices || prices.length < 2) return "";
 
-    const width = 120; // Reduced width
-    const height = 40; // Reduced height
+    const width = 120; 
+    const height = 40; 
     const minPrice = Math.min(...prices);
     const maxPrice = Math.max(...prices);
     const priceRange = maxPrice - minPrice;
@@ -179,85 +179,121 @@ export const StockTicker = ({ symbol, weeks, logo }: StockTickerProps): ReactEle
     <div
       style={{
         padding: "1rem 0.5rem 0.5rem",
-        display: "flex",
-        alignItems: "center",
         width: "100%",
         boxSizing: "border-box",
-        justifyContent: "space-between",
         minHeight: "80px",
       }}
     >
-      {/* Logo */}
       <div
         style={{
           display: "flex",
           alignItems: "center",
-          justifyContent: "center",
-          width: "50px",
-          height: "50px",
-          borderRadius: "50%",
-          overflow: "hidden",
-          backgroundColor: "#efefef",
-          flexShrink: 0,
+          justifyContent: "space-between",
+          flexWrap: "wrap", // Allow wrapping on smaller screens
         }}
       >
-        {companyLogo && (
-          <img
-            src={companyLogo}
-            alt={`${companyName} Logo`}
-            style={{
-              maxWidth: "70%",
-              maxHeight: "70%",
-              display: "block",
-            }}
-          />
-        )}
-      </div>
-
-      {/* Symbol & Name */}
-      <div style={{ flex: 1, textAlign: "left", marginLeft: "1rem", minWidth: "100px" }}>
-        <h2 style={{ margin: 0, fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-          {symbol}
-        </h2>
-        <p style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-          {companyName || ""}
-        </p>
-        {loading && <p>Loading data...</p>}
-      </div>
-
-      {/* Chart + Price Info */}
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          gap: "0.5rem",
-          flexShrink: 0,
-        }}
-      >
-        {/* Chart */}
-        {closingPrices.length > 1 && (
-          <svg width="120" height="40" viewBox="0 0 120 50" style={{ marginTop: "0px" }}>
-            <path
-              d={generateSvgPath(closingPrices)}
-              stroke="green"
-              strokeWidth="2"
-              fill="none"
+        {/* Logo */}
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            width: "50px",
+            height: "50px",
+            borderRadius: "50%",
+            overflow: "hidden",
+            backgroundColor: "#efefef",
+            flexShrink: 0,
+            marginBottom: "0.5rem", // Add some spacing
+          }}
+        >
+          {companyLogo && (
+            <img
+              src={companyLogo}
+              alt={`${companyName} Logo`}
+              style={{
+                maxWidth: "70%",
+                maxHeight: "70%",
+                display: "block",
+              }}
             />
-          </svg>
-        )}
-        {/* Price & Daily Change */}
-        <div style={{ textAlign: "right", minWidth: "60px" }}>
-          {latestClose !== null && (
-            <div style={{ fontSize: "1rem", fontWeight: 600 }}>
-              ${latestClose.toFixed(2)}
-            </div>
           )}
-          {priceChange !== null && (
-            <div style={{ color: changeColor, fontSize: "0.9rem" }}>
-              {priceChange >= 0 ? "+" : ""}
-              ${Math.abs(priceChange).toFixed(2)}
-            </div>
+        </div>
+
+        {/* Symbol & Name */}
+        <div
+          style={{
+            flex: 1,
+            textAlign: "left",
+            marginLeft: "1rem",
+            minWidth: "100px",
+            marginBottom: "0.5rem", // Add spacing
+          }}
+        >
+          <h2
+            style={{
+              margin: 0,
+              fontWeight: 600,
+              whiteSpace: "nowrap",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              lineHeight: "15px",
+            }}
+          >
+            {symbol}
+          </h2>
+          <p
+            style={{
+              whiteSpace: "nowrap",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+            }}
+          >
+            {companyName || ""}
+          </p>
+          {loading && <p>Loading data...</p>}
+        </div>
+
+        {/* Chart + Price Info */}
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "0.5rem",
+            flexShrink: 0,
+            marginBottom: "0.5rem", // Add spacing
+          }}
+        >
+          {/* Chart */}
+          {closingPrices.length > 1 && (
+            <svg
+              width="120"
+              height="40"
+              viewBox="0 0 120 50"
+              style={{ marginTop: "0px" }}
+            >
+              <path
+                d={generateSvgPath(closingPrices)}
+                stroke="green"
+                strokeWidth="2"
+                fill="none"
+              />
+            </svg>
           )}
+          {/* Price & Daily Change */}
+          <div style={{ textAlign: "right", minWidth: "60px" }}>
+            {latestClose !== null && (
+              <div style={{ fontSize: "1rem", fontWeight: 600 }}>
+                ${latestClose.toFixed(2)}
+              </div>
+            )}
+            {priceChange !== null && (
+              <div style={{ color: changeColor, fontSize: "0.9rem" }}>
+                {priceChange >= 0 ? "+" : ""}
+                ${Math.abs(priceChange).toFixed(2)}
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>
