@@ -24,6 +24,14 @@ export const configurationSchema: JSONSchema7 = {
       type: "string",
       title: "symbol",
     },
+    weeks: {
+      type: "string",
+      title: "weeks",
+    },
+    logo: {
+      type: "string",
+      title: "logo",
+    }
   },
 };
 
@@ -33,6 +41,12 @@ export const configurationSchema: JSONSchema7 = {
  */
 export const uiSchema: UiSchema = {
   symbol: {
-    "ui:help": "Stock symbol to fetch data",
+    "ui:help": "Enter the stock ticker symbol (e.g., AAPL for Apple, GOOG for Google). Defaults to dummy data if left blank or set to 'VNI'",
+  },
+  weeks: {
+    "ui:help": "Specify how many weeks of historical stock data to display in the graph. Maximum allowed is 104 weeks (2 years).",
+  },
+  logo: {
+    "ui:help": "(Optional) Enter the direct URL of a company logo image. This will override any logo fetched from the stock data API.",
   },
 };

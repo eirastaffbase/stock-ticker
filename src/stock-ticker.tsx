@@ -14,15 +14,13 @@
 import React, { ReactElement, useState, useEffect } from "react";
 import { BlockAttributes } from "widget-sdk";
 
-/**
- * React Component
- */
-
 export interface StockTickerProps extends BlockAttributes {
   symbol: string;
+  weeks: number;
+  logo: string;
 }
 
-export const StockTicker = ({ symbol }: StockTickerProps): ReactElement => {
+export const StockTicker = ({ symbol, weeks, logo }: StockTickerProps): ReactElement => {
   const [companyName, setCompanyName] = useState<string>("");
   const [companyLogo, setCompanyLogo] = useState<string>("");
   const [loading, setLoading] = useState(false);
@@ -30,24 +28,34 @@ export const StockTicker = ({ symbol }: StockTickerProps): ReactElement => {
   const [closingPrices, setClosingPrices] = useState<number[]>([]);
   const [latestClose, setLatestClose] = useState<number | null>(null);
   const [prevClose, setPrevClose] = useState<number | null>(null);
- 
+
   const apiKey = "peVSYdi2zmCBJYWXc0pe0d_B0FP6dXO7";
-  // Values to use if nothing loads from Polygon:
   const fallbackSymbol = "VNI";
   const fallbackCompanyName = "Vandelay Industries";
-  // The fallback logo you provided:
-  const fallbackLogo =
-    "https://app.staffbase.com/api/media/secure/external/v2/image/upload/c_limit,w_2000,h_2000/67b8d9d39089da19934cdc66.png";
-  const fallbackClosingPrices = [141, 132.0, 159, 163, 175, 180, 179, 182, 185.06];
+  const fallbackLogo = "https://eirastaffbase.github.io/stock-ticker/resources/VNI.png";
+  const fallbackClosingPrices = [141, 132, 159, 163, 154, 120, 175, 160.02, 185.06];
 
+  // Default to 2 weeks if `weeks` is not set or is otherwise falsy
+  const effectiveWeeks = weeks || 2;
 
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
       setError(null);
 
+      // Bypass API calls if symbol is "VNI"
+      if (symbol === "VNI") {
+        setCompanyName(fallbackCompanyName);
+        setCompanyLogo(fallbackLogo);
+        setClosingPrices(fallbackClosingPrices);
+        setLatestClose(185.06);
+        setPrevClose(160.02);
+        setLoading(false);
+        return; // Exit the useEffect
+      }
+
       try {
-        // 1) Fetch Ticker Details for company name
+        // Always fetch details to get the company name, but optionally skip the logo portion
         const detailsUrl = `https://api.polygon.io/v3/reference/tickers/${symbol}?apiKey=${apiKey}`;
         const detailsResponse = await fetch(detailsUrl);
         if (!detailsResponse.ok) {
@@ -55,11 +63,14 @@ export const StockTicker = ({ symbol }: StockTickerProps): ReactElement => {
         }
         const detailsData = await detailsResponse.json();
 
-        // 2) Possibly fetch a logo if the branding is there
+        // If a custom logo is provided, use that; skip the logo fetch
         let logoDataUrl = "";
-        if (detailsData?.results?.branding?.logo_url) {
-          const polygonLogoUrl =
-            detailsData.results.branding.logo_url + "?apiKey=" + apiKey;
+        if (logo) {
+          // Use the custom logo
+          logoDataUrl = logo;
+        } else if (detailsData?.results?.branding?.logo_url) {
+          // Otherwise, fetch Polygon’s logo
+          const polygonLogoUrl = detailsData.results.branding.logo_url + "?apiKey=" + apiKey;
           try {
             const logoResponse = await fetch(polygonLogoUrl);
             if (logoResponse.ok) {
@@ -71,27 +82,26 @@ export const StockTicker = ({ symbol }: StockTickerProps): ReactElement => {
           }
         }
 
-        // 3) Fetch daily aggregates for the chart and pricing
+        // Prepare date range for the aggregator
         const today = new Date();
-        const twoWeeksAgo = new Date(today);
-        twoWeeksAgo.setDate(today.getDate() - 14);
+        const startDate = new Date(today);
+        startDate.setDate(today.getDate() - effectiveWeeks * 7);
 
         const endDate = today.toISOString().split("T")[0];
-        const startDate = twoWeeksAgo.toISOString().split("T")[0];
+        const startDateStr = startDate.toISOString().split("T")[0];
 
-        const aggsUrl = `https://api.polygon.io/v2/aggs/ticker/${symbol}/range/1/day/${startDate}/${endDate}?adjusted=true&sort=asc&apiKey=${apiKey}`;
+        // Fetch aggregator data for stock pricing
+        const aggsUrl = `https://api.polygon.io/v2/aggs/ticker/${symbol}/range/1/day/${startDateStr}/${endDate}?adjusted=true&sort=asc&apiKey=${apiKey}`;
         const aggsResponse = await fetch(aggsUrl);
         if (!aggsResponse.ok) {
           throw new Error(`HTTP error! Status: ${aggsResponse.status}`);
         }
         const aggsData = await aggsResponse.json();
 
-        // If we actually got results
         if (aggsData.results?.length) {
           const allResults = aggsData.results;
           const closes = allResults.map((r: any) => r.c);
 
-          // Use Polygon name if available:
           if (detailsData?.results?.name) {
             setCompanyName(detailsData.results.name);
           }
@@ -107,24 +117,18 @@ export const StockTicker = ({ symbol }: StockTickerProps): ReactElement => {
             setPrevClose(null);
           }
         } else {
-          // If no results, treat as a fail and use fallback data
           throw new Error("No results found in Polygon daily aggregates.");
         }
       } catch (error) {
         console.error("Error fetching data:", error);
 
-        // -- Fallback data if ANYTHING fails --
-        // Symbol
         symbol = fallbackSymbol;
         setCompanyName(fallbackCompanyName);
         setCompanyLogo(fallbackLogo);
         setClosingPrices(fallbackClosingPrices);
         setLatestClose(185.06);
-        // If we want the difference to be 53.06 exactly,
-        // then the previous close must be 132.0
-        setPrevClose(132.0);
+        setPrevClose(160.02);
 
-        // Hide the error in the UI, only log to console:
         setError(null);
       } finally {
         setLoading(false);
@@ -132,20 +136,18 @@ export const StockTicker = ({ symbol }: StockTickerProps): ReactElement => {
     };
 
     fetchData();
-  }, [symbol]);
+  }, [symbol, effectiveWeeks, logo]); // Note: watch `effectiveWeeks` instead of `weeks`
 
-  // Creates a smooth cubic Bézier curve path from closing prices
   const generateSvgPath = (prices: number[]): string => {
     if (!prices || prices.length < 2) return "";
 
-    const width = 150; // total width of chart
-    const height = 60; // total height of chart
+    const width = 120; // Reduced width
+    const height = 40; // Reduced height
     const minPrice = Math.min(...prices);
     const maxPrice = Math.max(...prices);
     const priceRange = maxPrice - minPrice;
     const stepX = width / (prices.length - 1);
 
-    // Convert each price to (x,y)
     const points = prices.map((price, i) => {
       const x = i * stepX;
       const y = height - ((price - minPrice) / priceRange) * height;
@@ -171,7 +173,6 @@ export const StockTicker = ({ symbol }: StockTickerProps): ReactElement => {
     priceChange = latestClose - prevClose;
   }
 
-  // Choose color based on the sign of priceChange
   const changeColor = priceChange && priceChange >= 0 ? "green" : "red";
 
   return (
@@ -183,6 +184,7 @@ export const StockTicker = ({ symbol }: StockTickerProps): ReactElement => {
         width: "100%",
         boxSizing: "border-box",
         justifyContent: "space-between",
+        minHeight: "80px",
       }}
     >
       {/* Logo */}
@@ -191,11 +193,12 @@ export const StockTicker = ({ symbol }: StockTickerProps): ReactElement => {
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          width: "60px",
-          height: "60px",
+          width: "50px",
+          height: "50px",
           borderRadius: "50%",
           overflow: "hidden",
           backgroundColor: "#efefef",
+          flexShrink: 0,
         }}
       >
         {companyLogo && (
@@ -212,11 +215,14 @@ export const StockTicker = ({ symbol }: StockTickerProps): ReactElement => {
       </div>
 
       {/* Symbol & Name */}
-      <div style={{ flex: 1, textAlign: "left", marginLeft: "1rem" }}>
-        <h2 style={{ margin: 0, fontWeight: 600 }}>{symbol}</h2>
-        <p style={{ margin: "4px 0" }}>{companyName || ""}</p>
+      <div style={{ flex: 1, textAlign: "left", marginLeft: "1rem", minWidth: "100px" }}>
+        <h2 style={{ margin: 0, fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+          {symbol}
+        </h2>
+        <p style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+          {companyName || ""}
+        </p>
         {loading && <p>Loading data...</p>}
-        {/* We do NOT render the error, we only log it in the console */}
       </div>
 
       {/* Chart + Price Info */}
@@ -224,12 +230,13 @@ export const StockTicker = ({ symbol }: StockTickerProps): ReactElement => {
         style={{
           display: "flex",
           alignItems: "center",
-          gap: "0.75rem",
+          gap: "0.5rem",
+          flexShrink: 0,
         }}
       >
         {/* Chart */}
         {closingPrices.length > 1 && (
-          <svg width="140" height="80" style={{ marginTop: "10px"}}>
+          <svg width="120" height="40" viewBox="0 0 120 50" style={{ marginTop: "0px" }}>
             <path
               d={generateSvgPath(closingPrices)}
               stroke="green"
@@ -238,16 +245,15 @@ export const StockTicker = ({ symbol }: StockTickerProps): ReactElement => {
             />
           </svg>
         )}
-
         {/* Price & Daily Change */}
-        <div style={{ textAlign: "right", minWidth: "70px" }}>
+        <div style={{ textAlign: "right", minWidth: "60px" }}>
           {latestClose !== null && (
-            <div style={{ fontSize: "1.2rem", fontWeight: 700 }}>
+            <div style={{ fontSize: "1rem", fontWeight: 600 }}>
               ${latestClose.toFixed(2)}
             </div>
           )}
           {priceChange !== null && (
-            <div style={{ color: changeColor }}>
+            <div style={{ color: changeColor, fontSize: "0.9rem" }}>
               {priceChange >= 0 ? "+" : ""}
               ${Math.abs(priceChange).toFixed(2)}
             </div>
