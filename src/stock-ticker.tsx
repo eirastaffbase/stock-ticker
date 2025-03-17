@@ -14,6 +14,18 @@
 import React, { ReactElement, useState, useEffect } from "react";
 import { BlockAttributes } from "widget-sdk";
 
+function useWindowSize() {
+  const [width, setWidth] = useState<number>(window.innerWidth);
+
+  useEffect(() => {
+    const handleResize = () => setWidth(window.innerWidth);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  return width;
+}
+
 export interface StockTickerProps extends BlockAttributes {
   symbol: string;
   weeks: number;
@@ -29,13 +41,74 @@ export const StockTicker = ({ symbol, weeks, logo }: StockTickerProps): ReactEle
   const [latestClose, setLatestClose] = useState<number | null>(null);
   const [prevClose, setPrevClose] = useState<number | null>(null);
 
+  const width = useWindowSize();
+  const isMid = width < 800;   
+  const isSmall = width < 500; 
+
+  const fontSize = isSmall ? "0.8rem" : isMid ? "0.9rem" : "1rem";
+  const logoSize = isSmall ? 35 : isMid ? 40 : 50;
+  const svgWidth = isSmall ? 80 : isMid ? 100 : 120;
+  const svgHeight = isSmall ? 30 : isMid ? 35 : 40;
+
+  const containerStyle: React.CSSProperties = {
+    padding: "1rem 0.5rem 0.5rem",
+    width: "100%",
+    boxSizing: "border-box",
+    minHeight: "80px",
+    fontSize,
+  };
+
+  const rowStyle: React.CSSProperties = {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    flexWrap: isSmall ? "wrap" : "nowrap",
+  };
+
+  const logoContainerStyle: React.CSSProperties = {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    width: `${logoSize}px`,
+    height: `${logoSize}px`,
+    borderRadius: "50%",
+    overflow: "hidden",
+    backgroundColor: "#efefef",
+    flexShrink: 0,
+    marginBottom: "0.5rem",
+  };
+
+  const detailsStyle: React.CSSProperties = {
+    flex: 1,
+    textAlign: "left",
+    marginLeft: "1rem",
+    minWidth: "100px",
+    marginBottom: "0.5rem",
+  };
+
+  const graphPriceStyle: React.CSSProperties = {
+    display: "flex",
+    alignItems: "center",
+    gap: "0.5rem",
+    flexShrink: 0,
+    marginBottom: "0.5rem",
+  };
+
+  const svgStyle: React.CSSProperties = {
+    marginTop: "0px",
+  };
+
+  const priceInfoStyle: React.CSSProperties = {
+    textAlign: "right",
+    minWidth: "60px",
+  };
+
   const apiKey = "peVSYdi2zmCBJYWXc0pe0d_B0FP6dXO7";
   const fallbackSymbol = "VNI";
   const fallbackCompanyName = "Vandelay Industries";
   const fallbackLogo = "https://eirastaffbase.github.io/stock-ticker/resources/VNI.png";
   const fallbackClosingPrices = [141, 132, 159, 163, 154, 120, 175, 160.02, 185.06];
 
-  // Default to 2 weeks if `weeks` is not set or is otherwise falsy
   const effectiveWeeks = weeks || 2;
 
   useEffect(() => {
@@ -51,11 +124,11 @@ export const StockTicker = ({ symbol, weeks, logo }: StockTickerProps): ReactEle
         setLatestClose(185.06);
         setPrevClose(160.02);
         setLoading(false);
-        return; // Exit the useEffect
+        return;
       }
 
       try {
-        // Always fetch details to get the company name, but optionally skip the logo portion
+        // Always fetch details to get the company name
         const detailsUrl = `https://api.polygon.io/v3/reference/tickers/${symbol}?apiKey=${apiKey}`;
         const detailsResponse = await fetch(detailsUrl);
         if (!detailsResponse.ok) {
@@ -63,13 +136,11 @@ export const StockTicker = ({ symbol, weeks, logo }: StockTickerProps): ReactEle
         }
         const detailsData = await detailsResponse.json();
 
-        // If a custom logo is provided, use that; skip the logo fetch
+        // If a custom logo is provided, use that
         let logoDataUrl = "";
         if (logo) {
-          // Use the custom logo
           logoDataUrl = logo;
         } else if (detailsData?.results?.branding?.logo_url) {
-          // Otherwise, fetch Polygon’s logo
           const polygonLogoUrl = detailsData.results.branding.logo_url + "?apiKey=" + apiKey;
           try {
             const logoResponse = await fetch(polygonLogoUrl);
@@ -86,12 +157,10 @@ export const StockTicker = ({ symbol, weeks, logo }: StockTickerProps): ReactEle
         const today = new Date();
         const startDate = new Date(today);
         startDate.setDate(today.getDate() - effectiveWeeks * 7);
-
-        const endDate = today.toISOString().split("T")[0];
+        const endDateStr = today.toISOString().split("T")[0];
         const startDateStr = startDate.toISOString().split("T")[0];
 
-        // Fetch aggregator data for stock pricing
-        const aggsUrl = `https://api.polygon.io/v2/aggs/ticker/${symbol}/range/1/day/${startDateStr}/${endDate}?adjusted=true&sort=asc&apiKey=${apiKey}`;
+        const aggsUrl = `https://api.polygon.io/v2/aggs/ticker/${symbol}/range/1/day/${startDateStr}/${endDateStr}?adjusted=true&sort=asc&apiKey=${apiKey}`;
         const aggsResponse = await fetch(aggsUrl);
         if (!aggsResponse.ok) {
           throw new Error(`HTTP error! Status: ${aggsResponse.status}`);
@@ -122,13 +191,12 @@ export const StockTicker = ({ symbol, weeks, logo }: StockTickerProps): ReactEle
       } catch (error) {
         console.error("Error fetching data:", error);
 
-        symbol = fallbackSymbol;
+        // Fallback
         setCompanyName(fallbackCompanyName);
         setCompanyLogo(fallbackLogo);
         setClosingPrices(fallbackClosingPrices);
         setLatestClose(185.06);
         setPrevClose(160.02);
-
         setError(null);
       } finally {
         setLoading(false);
@@ -136,13 +204,14 @@ export const StockTicker = ({ symbol, weeks, logo }: StockTickerProps): ReactEle
     };
 
     fetchData();
-  }, [symbol, effectiveWeeks, logo]); 
+  }, [symbol, effectiveWeeks, logo]);
 
+  // Simple function to generate a smooth SVG path from closing prices
   const generateSvgPath = (prices: number[]): string => {
     if (!prices || prices.length < 2) return "";
 
-    const width = 120; 
-    const height = 40; 
+    const width = 120;
+    const height = 40;
     const minPrice = Math.min(...prices);
     const maxPrice = Math.max(...prices);
     const priceRange = maxPrice - minPrice;
@@ -155,7 +224,6 @@ export const StockTicker = ({ symbol, weeks, logo }: StockTickerProps): ReactEle
     });
 
     let pathD = `M ${points[0].x},${points[0].y}`;
-
     for (let i = 0; i < points.length - 1; i++) {
       const p0 = points[i];
       const p1 = points[i + 1];
@@ -172,64 +240,24 @@ export const StockTicker = ({ symbol, weeks, logo }: StockTickerProps): ReactEle
   if (latestClose !== null && prevClose !== null) {
     priceChange = latestClose - prevClose;
   }
-
   const changeColor = priceChange && priceChange >= 0 ? "green" : "red";
 
   return (
-    <div
-      style={{
-        padding: "1rem 0.5rem 0.5rem",
-        width: "100%",
-        boxSizing: "border-box",
-        minHeight: "80px",
-      }}
-    >
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          flexWrap: "wrap", // Allow wrapping on smaller screens
-        }}
-      >
+    <div className="stockwidget-container" style={containerStyle}>
+      <div className="stockwidget-row" style={rowStyle}>
         {/* Logo */}
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            width: "50px",
-            height: "50px",
-            borderRadius: "50%",
-            overflow: "hidden",
-            backgroundColor: "#efefef",
-            flexShrink: 0,
-            marginBottom: "0.5rem", // Add some spacing
-          }}
-        >
+        <div className="stockwidget-logo" style={logoContainerStyle}>
           {companyLogo && (
             <img
               src={companyLogo}
               alt={`${companyName} Logo`}
-              style={{
-                maxWidth: "70%",
-                maxHeight: "70%",
-                display: "block",
-              }}
+              style={{ maxWidth: "70%", maxHeight: "70%", display: "block" }}
             />
           )}
         </div>
 
         {/* Symbol & Name */}
-        <div
-          style={{
-            flex: 1,
-            textAlign: "left",
-            marginLeft: "1rem",
-            minWidth: "100px",
-            marginBottom: "0.5rem", // Add spacing
-          }}
-        >
+        <div className="stockwidget-details" style={detailsStyle}>
           <h2
             style={{
               margin: 0,
@@ -247,6 +275,7 @@ export const StockTicker = ({ symbol, weeks, logo }: StockTickerProps): ReactEle
               whiteSpace: "nowrap",
               overflow: "hidden",
               textOverflow: "ellipsis",
+              margin: 0,
             }}
           >
             {companyName || ""}
@@ -255,33 +284,27 @@ export const StockTicker = ({ symbol, weeks, logo }: StockTickerProps): ReactEle
         </div>
 
         {/* Chart + Price Info */}
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: "0.5rem",
-            flexShrink: 0,
-            marginBottom: "0.5rem", // Add spacing
-          }}
-        >
+        <div className="stockwidget-graphPrice" style={graphPriceStyle}>
           {/* Chart */}
           {closingPrices.length > 1 && (
             <svg
-              width="120"
-              height="40"
-              viewBox="0 0 120 50"
-              style={{ marginTop: "0px" }}
+              className="stockwidget-chart"
+              width={svgWidth}
+              height={svgHeight}
+              viewBox="0 0 130 40"
+              style={svgStyle}
             >
               <path
                 d={generateSvgPath(closingPrices)}
                 stroke="green"
-                strokeWidth="2"
+                strokeWidth={2}
                 fill="none"
               />
             </svg>
           )}
+
           {/* Price & Daily Change */}
-          <div style={{ textAlign: "right", minWidth: "60px" }}>
+          <div className="stockwidget-price" style={priceInfoStyle}>
             {latestClose !== null && (
               <div style={{ fontSize: "1rem", fontWeight: 600 }}>
                 ${latestClose.toFixed(2)}
