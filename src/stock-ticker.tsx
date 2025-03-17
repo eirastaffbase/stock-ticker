@@ -210,6 +210,7 @@ export const StockTicker = ({
     alignItems: "center",
     justifyContent: "space-between",
     flexWrap: "wrap",
+    fontSize,
   };
 
   const logoContainerStyle: React.CSSProperties = {
@@ -247,7 +248,8 @@ export const StockTicker = ({
 
   const priceInfoStyle: React.CSSProperties = {
     textAlign: "right",
-    lineHeight: "normal"
+    lineHeight: "1.3em",
+
   };
 
   return (
@@ -270,19 +272,20 @@ export const StockTicker = ({
             style={{
               margin: 0,
               fontWeight: 600,
-              whiteSpace: "wrap",
               overflow: "hidden",
               textOverflow: "ellipsis",
-              lineHeight: "normal",
+              lineHeight: "1.3em",
+              fontSize: fontSize,
             }}
           >
             {symbol}
           </h2>
           <p
             style={{
-              whiteSpace: "wrap",
               overflow: "hidden",
               textOverflow: "ellipsis",
+              fontSize: fontSize,
+              lineHeight: "1.3em",
               margin: 0,
             }}
           >
@@ -326,7 +329,7 @@ export const StockTicker = ({
                 }}
               >
                 {priceChange >= 0 ? "+" : ""}
-                ${Math.abs(priceChange).toFixed(2)}
+                ${priceChange.toFixed(2)}
               </div>
             )}
           </div>
