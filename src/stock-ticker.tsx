@@ -42,13 +42,18 @@ export const StockTicker = ({ symbol, weeks, logo }: StockTickerProps): ReactEle
   const [prevClose, setPrevClose] = useState<number | null>(null);
 
   const width = useWindowSize();
-  const isMid = width < 800;   
-  const isSmall = width < 500; 
+  const isMid = width < 850;   
+  const isSmall = width < 705; 
 
-  const fontSize = isSmall ? "0.8rem" : isMid ? "0.9rem" : "1rem";
-  const logoSize = isSmall ? 35 : isMid ? 40 : 50;
-  const svgWidth = isSmall ? 80 : isMid ? 100 : 120;
-  const svgHeight = isSmall ? 30 : isMid ? 35 : 40;
+  const fontSize = isSmall ? "0.7rem" : isMid ? "0.85rem" : "1rem";
+
+  const logoSize = isSmall ? 30 : isMid ? 35 : 50;
+
+  const svgWidth = isSmall ? 70 : isMid ? 90 : 120;
+  const svgHeight = isSmall ? 30 : isMid ? 30 : 40;
+
+  const mainPriceFontSize = isSmall ? "0.8rem" : isMid ? "0.9rem" : "1rem";
+  const dailyChangeFontSize = isSmall ? "0.7rem" : isMid ? "0.8rem" : "0.9rem";
 
   const containerStyle: React.CSSProperties = {
     padding: "1rem 0.5rem 0.5rem",
@@ -62,7 +67,7 @@ export const StockTicker = ({ symbol, weeks, logo }: StockTickerProps): ReactEle
     display: "flex",
     alignItems: "center",
     justifyContent: "space-between",
-    flexWrap: isSmall ? "wrap" : "nowrap",
+    flexWrap: "wrap",
   };
 
   const logoContainerStyle: React.CSSProperties = {
@@ -100,14 +105,15 @@ export const StockTicker = ({ symbol, weeks, logo }: StockTickerProps): ReactEle
 
   const priceInfoStyle: React.CSSProperties = {
     textAlign: "right",
-    minWidth: "60px",
   };
 
   const apiKey = "peVSYdi2zmCBJYWXc0pe0d_B0FP6dXO7";
   const fallbackSymbol = "VNI";
   const fallbackCompanyName = "Vandelay Industries";
   const fallbackLogo = "https://eirastaffbase.github.io/stock-ticker/resources/VNI.png";
-  const fallbackClosingPrices = [141, 132, 129, 149, 147, 159, 163, 154, 128, 175, 160.02, 185.06];
+  const fallbackClosingPrices = [
+    141, 132, 147, 159, 163, 154, 120, 175, 160.02, 185.06,
+  ];
 
   const effectiveWeeks = weeks || 2;
 
@@ -262,7 +268,7 @@ export const StockTicker = ({ symbol, weeks, logo }: StockTickerProps): ReactEle
             style={{
               margin: 0,
               fontWeight: 600,
-              whiteSpace: "nowrap",
+              whiteSpace: "wrap",
               overflow: "hidden",
               textOverflow: "ellipsis",
               lineHeight: "15px",
@@ -272,7 +278,7 @@ export const StockTicker = ({ symbol, weeks, logo }: StockTickerProps): ReactEle
           </h2>
           <p
             style={{
-              whiteSpace: "nowrap",
+              whiteSpace: "wrap",
               overflow: "hidden",
               textOverflow: "ellipsis",
               margin: 0,
@@ -306,12 +312,12 @@ export const StockTicker = ({ symbol, weeks, logo }: StockTickerProps): ReactEle
           {/* Price & Daily Change */}
           <div className="stockwidget-price" style={priceInfoStyle}>
             {latestClose !== null && (
-              <div style={{ fontSize: "1rem", fontWeight: 600 }}>
+              <div style={{ fontSize: mainPriceFontSize, fontWeight: 600 }}>
                 ${latestClose.toFixed(2)}
               </div>
             )}
             {priceChange !== null && (
-              <div style={{ color: changeColor, fontSize: "0.9rem" }}>
+              <div style={{ color: changeColor, fontSize: dailyChangeFontSize }}>
                 {priceChange >= 0 ? "+" : ""}
                 ${Math.abs(priceChange).toFixed(2)}
               </div>
