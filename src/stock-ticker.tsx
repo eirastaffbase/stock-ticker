@@ -276,6 +276,7 @@ export const StockTicker = ({
               textOverflow: "ellipsis",
               lineHeight: "1.3em",
               fontSize: fontSize,
+              padding:"0px",
             }}
           >
             {symbol}
