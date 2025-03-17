@@ -27,6 +27,7 @@ const widgetAttributes: string[] = [
   'symbol',
   'weeks',
   'logo',
+  'stockgraphcolor',
 ];
 
 /**

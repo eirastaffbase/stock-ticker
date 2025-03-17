@@ -31,6 +31,10 @@ export const configurationSchema: JSONSchema7 = {
     logo: {
       type: "string",
       title: "logo",
+    },
+    stockgraphcolor: {
+      type: "string",
+      title: "stock graph color",
     }
   },
 };
@@ -48,5 +52,8 @@ export const uiSchema: UiSchema = {
   },
   logo: {
     "ui:help": "(Optional) Enter the direct URL of a company logo image. This will override any logo fetched from the stock data API.",
+  },
+  stockgraphcolor: {
+    "ui:help": "Choose a color for the stock graph. (eg #000, blue) Defaults to green if left blank.",
   },
 };
