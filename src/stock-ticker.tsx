@@ -107,7 +107,7 @@ export const StockTicker = ({ symbol, weeks, logo }: StockTickerProps): ReactEle
   const fallbackSymbol = "VNI";
   const fallbackCompanyName = "Vandelay Industries";
   const fallbackLogo = "https://eirastaffbase.github.io/stock-ticker/resources/VNI.png";
-  const fallbackClosingPrices = [141, 132, 159, 163, 154, 120, 175, 160.02, 185.06];
+  const fallbackClosingPrices = [141, 132, 129, 149, 147, 159, 163, 154, 128, 175, 160.02, 185.06];
 
   const effectiveWeeks = weeks || 2;
 
