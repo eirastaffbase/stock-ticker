@@ -193,8 +193,9 @@ export const StockTicker = ({
   }
   const changeColor = priceChange && priceChange >= 0 ? "green" : "red";
 
-  // Graph color: use the user-specified color, or default to green
-  const graphColor = stockgraphcolor || "green";
+
+  // Graph color: use the user-specified color, or default to green or red based on change
+  const graphColor = stockgraphcolor || changeColor;
 
   // Styles
   const containerStyle: React.CSSProperties = {
@@ -329,9 +330,7 @@ export const StockTicker = ({
                   fontSize: dailyChangeFontSize,
                 }}
               >
-                {priceChange >= 0 ? "+" : ""}
-                ${priceChange.toFixed(2)}
-              </div>
+                ${Math.abs(priceChange).toFixed(2)}              </div>
             )}
           </div>
         </div>
